@@ -1,6 +1,6 @@
 # BDwindspeeds
 
-This public repo contains data and code used to make figures for Allers et al. (2020):
+This public repo contains data and code used in Allers et al. (2020):
 
 
 
