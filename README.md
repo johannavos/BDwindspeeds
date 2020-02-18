@@ -4,7 +4,7 @@ This public repo contains data and code used in Allers et al. (2020):
 
 
 
-**calc_FAP.pro**	      -- calculate periodograms of target and reference stars, as well as false-alarm
+**calc_FAP.pro**	      -- IDL code to calculate periodograms of target and reference stars, as well as false-alarm
                        probability using corrected Spitzer photometry. (Figure S2)  
                        
 **plot_fig2_final.py**	-- Lomb-Scargle boot-strapping method -- create Figure 2 in paper using corrected Spitzer photometry   
