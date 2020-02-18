@@ -10,3 +10,5 @@ calc_FAP.pro	      -- calculate periodograms of target and reference stars, as w
 plot_fig2_final.py	-- Lomb-Scargle boot-strapping method -- create Figure 2 in paper using corrected Spitzer photometry   
 
 plot_figs5_final.py -- Lomb-Scargle boot-strapping method -- create Figure S5 in paper using VLA data   
+
+2M1047_sin_emcee.py -- find sinusoidal fit posterior distributions using MCMC.
