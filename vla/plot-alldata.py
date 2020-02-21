@@ -27,7 +27,7 @@ PULSES_IN_DAY = {
 }
 
 def plot():
-    df = photom.load_and_reduce('dynfilt.ll.txt')
+    df = photom.load_and_reduce('../target.phot.ll.txt')
     soln = photom.BEST_SOLN
 
     toa_nrot, toas = photom.best_toas(df)

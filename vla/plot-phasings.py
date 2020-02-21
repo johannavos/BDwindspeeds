@@ -66,7 +66,7 @@ def plot_one(plotnum, data, prd):
 
 
 def plot():
-    df = photom.load_and_reduce('dynfilt.ll.txt')
+    df = photom.load_and_reduce('../target.phot.ll.txt')
 
     prd = photom.BEST_SOLN.period - (n_trials // 2) * delta_day
     hb = om.layout.HBox(n_trials)
