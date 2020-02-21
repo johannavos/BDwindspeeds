@@ -88,6 +88,8 @@ def plot():
         p.defaultKeyOverlay.hAlign = 0.97
         p.defaultKeyOverlay.vAlign = 0.07
 
+        p.add(TextOverlay(0.02, 0.04, '<span size="xx-large" weight="700">(%s)</span>' % (chr(ord('A') + dday))))
+
         vb[dday] = p
 
     vb[1].setYLabel('Flux density (μJy)')

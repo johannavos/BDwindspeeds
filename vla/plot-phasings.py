@@ -62,6 +62,7 @@ def plot_one(plotnum, data, prd):
     p.defaultKeyOverlay.hAlign = 0.89
     p.defaultKeyOverlay.vAlign = 0.04
     p.setBounds(xmin=-0.05, xmax=1.05, ymin=-70, ymax=800)
+    p.add(TextOverlay(0.05, 0.02, '<span size="xx-large" weight="700">(%s)</span>' % (chr(ord('A') + plotnum))))
     return p
 
 

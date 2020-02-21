@@ -21,6 +21,7 @@ BigArrow
 KeyHighlightStamp
 ManualStampKeyPainter
 Rectangle
+TextOverlay
 XYText
 '''.split()
 
@@ -172,6 +173,45 @@ class XYText(om.rect.FieldPainter):
             ctxt,
             x - self.hAnchor * w,
             y - self.vAnchor * h,
+            self.color
+        )
+        ctxt.restore()
+
+
+class TextOverlay(om.rect.FieldPainter):
+    """Overlay text on the plot.
+
+    """
+    style = None
+    color = (0, 0, 0)
+    _ts = None
+
+    def __init__(self, h, v, text):
+        super(TextOverlay, self).__init__()
+        self.text = str(text)
+        self.h = float(h)
+        self.v = float(v)
+
+    def getDataBounds(self):
+        return None, None, None, None
+
+    def getKeyPainter(self):
+        return None
+
+    def doPaint(self, ctxt, style):
+        super(TextOverlay, self).doPaint(ctxt, style)
+
+        if self._ts is None:
+            self._ts = om.TextStamper(self.text)
+
+        w, h = self._ts.getSize(ctxt, style)
+
+        ctxt.save()
+        style.apply(ctxt, self.style)
+        self._ts.paintAt(
+            ctxt,
+            self.h * (self.xform.width - w),
+            self.v * (self.xform.height - h),
             self.color
         )
         ctxt.restore()
