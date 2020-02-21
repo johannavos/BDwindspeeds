@@ -63,9 +63,10 @@ Conducted in this directory with `target.phot.ll.txt` as an input. As with
 the reduction, lots of exploration and false starts leading up to the fairly
 simple analysis described in the paper.
 
-The Python scripts use [Numpy](https://numpy.org/),
-[SciPy](https://scipy.org/), [Pandas](https://pandas.pydata.org/), [pwkit],
-and [omegaplot](https://github.com/pkgw/omegaplot) for plotting.
+The Python scripts use [Astropy](https://www.astropy.org/),
+[Numpy](https://numpy.org/), [SciPy](https://scipy.org/),
+[Pandas](https://pandas.pydata.org/), [pwkit], and
+[omegaplot](https://github.com/pkgw/omegaplot) for plotting.
 
 Then `./periodicity-analysis.py` executes the final preferred analysis, and
 `./plot-*.py` make the plots based on it. The file `photom.py` hardcodes the

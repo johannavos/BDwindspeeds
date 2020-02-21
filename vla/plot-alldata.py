@@ -9,6 +9,7 @@
 
 import sys ; sys.path.insert (0, '.') # needed since we're omegafig.
 
+from astropy.time import Time
 import numpy as np
 import omega as om
 
@@ -26,8 +27,15 @@ PULSES_IN_DAY = {
     2: 7,
 }
 
+def dhr_to_ut(dhr):
+    mjd = dhr/24 + photom.MJD0
+    t = Time(mjd, format='mjd', scale='utc')
+    return t.utc.strftime('%H:%M')
+
+
 def plot():
     df = photom.load_and_reduce('../target.phot.ll.txt')
+    df['dhr'] = df['dmjd'] * 24
     soln = photom.BEST_SOLN
 
     toa_nrot, toas = photom.best_toas(df)
@@ -42,14 +50,16 @@ def plot():
 
         # Zero reference line
         p.addXY(
-            [DMJD_XMIN + dday, DMJD_XMAX + dday], [0, 0],
+            [24 * (DMJD_XMIN + dday), 24 * (DMJD_XMAX + dday)], [0, 0],
             None,
             lineStyle = {'dashing': [3, 3], 'color': 'muted'},
             dsn = 0
         )
 
         # Actual data
-        p.addDF(df[subset][['dmjd', 're', 'ure']], f'Day {dday+1}')
+        t = Time(np.median(df[subset]['dmjd']) + photom.MJD0, format='mjd', scale='utc')
+        utdate = t.utc.strftime('%Y %b %d')
+        p.addDF(df[subset][['dhr', 're', 'ure']], f'Day {dday+1} ({utdate} UT)')
 
         # Markers for the best-fit pulse ephemeris
         dmjdmin = DMJD_XMIN + dday
@@ -64,19 +74,19 @@ def plot():
 
             if n == nmin or n == nmin + PULSES_IN_DAY[dday] - 1:
                 t = f'<span size="larger" weight="700">{n+1}</span>'
-                p.add(XYText(dmjd, 380, t))
+                p.add(XYText(24 * dmjd, 380, t))
 
             toa = toa_info.get(n)
             if toa is not None:
                 p.addXY(
-                    [toa, toa], [150, 450],
+                    [24 * toa, 24 * toa], [150, 450],
                     None,
                     lineStyle = {'linewidth': 0.5, 'color': (0, 0, 0), 'dashing': [2, 2]},
                     dsn = 0
                 )
 
             p.addXY(
-                [dmjd, dmjd], [250, 350],
+                [24 * dmjd, 24 * dmjd], [250, 350],
                 None,
                 lineStyle = {'linewidth': 3, 'color': (0, 0, 0)},
                 dsn = 0
@@ -84,9 +94,11 @@ def plot():
             n += 1
 
         # Labeling etc
-        p.setBounds(DMJD_XMIN + dday, DMJD_XMAX + dday, YMIN, YMAX)
+        p.setBounds(24 * (DMJD_XMIN + dday), 24 * (DMJD_XMAX + dday), YMIN, YMAX)
         p.defaultKeyOverlay.hAlign = 0.97
         p.defaultKeyOverlay.vAlign = 0.07
+        p.bpainter.numFormat = dhr_to_ut
+        p.bpainter.minorTicks = 4
 
         p.add(TextOverlay(0.02, 0.04, '<span size="xx-large" weight="700">(%s)</span>' % (chr(ord('A') + dday))),
               rebound=False)
@@ -94,6 +106,6 @@ def plot():
         vb[dday] = p
 
     vb[1].setYLabel('Flux density (μJy)')
-    vb[2].setXLabel(f'MJD - {photom.MJD0} (day)')
+    vb[2].setXLabel('Universal Time (UT)')
 
     return vb
