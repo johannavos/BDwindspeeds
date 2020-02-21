@@ -11,6 +11,7 @@ import sys ; sys.path.insert (0, '.') # needed since we're omegafig.
 
 import numpy as np
 import omega as om
+from pwkit import colormaps
 
 import photom
 from plots import *
@@ -21,6 +22,8 @@ dt_sep_cutoff = 0.005 # days
 stamp = lambda: om.stamps.Circle(size=3)
 cmpt = 're'
 
+colormap = None  # colormaps.moreland_bluered()
+alpha_term = 0.4  # only used if colormap is not None
 
 def plot_one(plotnum, data, prd):
     data['n'] = (data['mjd'] - 58404.598) / prd + 0.5
@@ -42,9 +45,19 @@ def plot_one(plotnum, data, prd):
             tcut = s.mjd.iloc[w[0]]
             segments = [s[s.mjd <= tcut], s[s.mjd > tcut]]
 
-        for seg in segments:
-            p.addDF(seg[['ph', cmpt, 'u'+cmpt]], None, dsn=i, lines=True,
-                     pointStamp=stamp())
+        if colormap is None:
+            for seg in segments:
+                p.addDF(seg[['ph', cmpt, 'u'+cmpt]], None, dsn=i, lines=True,
+                        pointStamp=stamp())
+        else:
+            colormap_value = i / (nmax - 1)
+            color = tuple(colormap(colormap_value)) + (alpha_term,)
+
+            for seg in segments:
+                p.addDF(seg[['ph', cmpt, 'u'+cmpt]], None, dsn=None, lines=True,
+                        pointStamp=stamp(),
+                        lineStyle={'color': color},
+                        stampStyle={'color': color})
 
     p.addKeyItem('%.3f hr' % (24 * prd))
     for ap in p.bpainter, p.tpainter:
