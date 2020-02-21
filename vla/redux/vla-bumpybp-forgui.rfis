@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Modified strategy file for debugging in the GUI. Sadly the structure of
+     this one is fairly different from the production version. -->
+
+<rfi-strategy format-version="3.7" reader-version-required="3.4">
+  <action type="Strategy">
+    <children>
+      <action type="SetImageAction">
+        <new-image>1</new-image> <!-- set contaminated <= original -->
+      </action>
+
+      <action type="SetFlaggingAction">
+        <new-flagging>2</new-flagging> <!-- restore original flags -->
+      </action>
+      
+      <action type="ForEachPolarisationBlock">
+        <on-xx>1</on-xx> <!-- only XX and YY for GUI -->
+        <on-xy>0</on-xy>
+        <on-yx>0</on-yx>
+        <on-yy>1</on-yy>
+        <on-stokes-i>0</on-stokes-i>
+        <on-stokes-q>0</on-stokes-q>
+        <on-stokes-u>0</on-stokes-u>
+        <on-stokes-v>0</on-stokes-v>
+        <children>
+          <action type="SetImageAction">
+	    <new-image>1</new-image> <!-- set contaminated <= original -->
+          </action>
+
+          <action type="ForEachComplexComponentAction">
+            <on-amplitude>1</on-amplitude>
+            <on-phase>0</on-phase>
+            <on-real>0</on-real>
+            <on-imaginary>0</on-imaginary>
+            <restore-from-amplitude>1</restore-from-amplitude> <!-- important for GUI! -->
+            <children>
+              <action type="IterationBlock">
+                <iteration-count>4</iteration-count>
+                <sensitivity-start>4</sensitivity-start>
+                <children>
+                  <action type="SumThresholdAction">
+                    <base-sensitivity>1.3</base-sensitivity>
+                    <time-direction-flagging>1</time-direction-flagging>
+                    <frequency-direction-flagging>1</frequency-direction-flagging>
+                  </action>
+                  <action type="CombineFlagResults">
+                    <children>
+                      <action type="FrequencySelectionAction">
+                        <threshold>3</threshold>
+                      </action>
+                      <action type="TimeSelectionAction">
+                        <threshold>3.5</threshold>
+                      </action>
+                    </children>
+                  </action> <!-- combine simult flagging results -->
+                  <action type="SetImageAction">
+                    <new-image>1</new-image> <!-- set contaminated <= original -->
+                  </action>
+                  <action type="ChangeResolutionAction">
+		    <!-- this block recomputes the background ("revised") model -->
+                    <time-decrease-factor>2</time-decrease-factor>
+                    <frequency-decrease-factor>1</frequency-decrease-factor>
+                    <restore-revised>1</restore-revised>
+                    <restore-masks>0</restore-masks>
+		    <use-mask-in-averaging>0</use-mask-in-averaging>
+                    <children>
+                      <action type="HighPassFilterAction">
+                        <horizontal-kernel-sigma-sq>4</horizontal-kernel-sigma-sq>
+                        <vertical-kernel-sigma-sq>0.5</vertical-kernel-sigma-sq>
+                        <window-width>5</window-width>
+                        <window-height>5</window-height>
+                        <mode>1</mode>
+                      </action>
+                    </children> <!-- computation of background model -->
+                  </action>
+                </children> <!-- iteration -->
+              </action>
+
+	      <!-- final, high-sensitivity RFI search after bkg has been determined -->
+              <action type="SumThresholdAction">
+                <base-sensitivity>1.3</base-sensitivity>
+                <time-direction-flagging>1</time-direction-flagging>
+                <frequency-direction-flagging>1</frequency-direction-flagging>
+              </action>
+            </children>
+          </action> <!-- for ampl -->
+
+	  <!-- This can't be applied to multi-pol chunks, so it has to go inside here. -->
+	  <action type="StatisticalFlagAction">
+            <enlarge-frequency-size>0</enlarge-frequency-size>
+            <enlarge-time-size>0</enlarge-time-size>
+            <max-contaminated-frequencies-ratio>0.5</max-contaminated-frequencies-ratio>
+            <max-contaminated-times-ratio>0.5</max-contaminated-times-ratio>
+            <minimum-good-frequency-ratio>0.15</minimum-good-frequency-ratio>
+            <minimum-good-time-ratio>0.1</minimum-good-time-ratio>
+	  </action>
+
+        </children>
+      </action> <!-- for XX/YY polns -->
+
+      <action type="CombineFlagResults">
+        <children>
+	  <action type="TimeSelectionAction">
+            <threshold>3.5</threshold>
+	  </action>
+	  <action type="FrequencySelectionAction">
+            <threshold>3</threshold>
+	  </action>
+	</children>
+      </action> 
+
+    </children> <!-- toplevel Strategy -->
+  </action>
+</rfi-strategy>

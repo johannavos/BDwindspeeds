@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- RFI strategy for glued-SPW VLA datasets before bandpasses have been
+     flattened. This is the production version that is intended to be
+     run from the command line and actually saves its changes. -->
+
+<rfi-strategy format-version="3.7" reader-version-required="3.4">
+  <action type="Strategy">
+    <children>
+      <action type="ForEachBaselineAction">
+        <selection>1</selection>
+	<!-- Keep thread count low if many aoflaggers will be run at once!
+	     Though the memory requirements are so large that so far it seems
+	     very unwise to try to run even two instances simultaneously -->
+        <thread-count>4</thread-count>
+        <children>
+          <action type="ForEachPolarisationBlock">
+            <on-xx>1</on-xx> <!-- these are really R/L combos for VLA -->
+            <on-xy>1</on-xy>
+            <on-yx>1</on-yx>
+            <on-yy>1</on-yy>
+            <on-stokes-i>0</on-stokes-i>
+            <on-stokes-q>0</on-stokes-q>
+            <on-stokes-u>0</on-stokes-u>
+            <on-stokes-v>0</on-stokes-v>
+            <children>
+              <action type="SetImageAction">
+		<new-image>1</new-image> <!-- set contaminated <= original -->
+              </action>
+
+              <action type="ForEachComplexComponentAction">
+                <on-amplitude>1</on-amplitude> <!-- ampl only ... -->
+                <on-phase>0</on-phase>
+                <on-real>0</on-real>
+                <on-imaginary>0</on-imaginary>
+                <restore-from-amplitude>0</restore-from-amplitude>
+                <children>
+                  <action type="IterationBlock">
+                    <iteration-count>4</iteration-count>
+                    <sensitivity-start>4</sensitivity-start>
+                    <children>
+                      <action type="SumThresholdAction">
+                        <base-sensitivity>1.3</base-sensitivity>
+                        <time-direction-flagging>1</time-direction-flagging>
+                        <frequency-direction-flagging>1</frequency-direction-flagging>
+                      </action>
+
+                      <action type="CombineFlagResults">
+			<!-- these are run independently then combined -->
+                        <children>
+                          <action type="FrequencySelectionAction">
+                            <threshold>3</threshold>
+                          </action>
+                          <action type="TimeSelectionAction">
+                            <threshold>3.5</threshold>
+                          </action>
+                        </children>
+                      </action>
+
+                      <action type="SetImageAction">
+                        <new-image>1</new-image> <!-- set contaminated <= original -->
+                      </action>
+
+                      <action type="ChangeResolutionAction">
+			<!-- this recomputed the background ("revised") model -->
+                        <time-decrease-factor>2</time-decrease-factor>
+                        <frequency-decrease-factor>1</frequency-decrease-factor>
+                        <restore-revised>1</restore-revised>
+                        <restore-masks>0</restore-masks>
+			<use-mask-in-averaging>0</use-mask-in-averaging>
+                        <children>
+                          <action type="HighPassFilterAction">
+                            <horizontal-kernel-sigma-sq>4</horizontal-kernel-sigma-sq>
+                            <vertical-kernel-sigma-sq>0.5</vertical-kernel-sigma-sq>
+                            <window-width>5</window-width>
+                            <window-height>5</window-height>
+                            <mode>1</mode>
+                          </action>
+                        </children>
+                      </action> <!-- background determination -->
+                    </children>
+                  </action> <!-- iteratation -->
+
+		  <!-- Final RFI determination with good background. Note that previous
+		       flagging operations are ignored when doing this. -->
+                  <action type="SumThresholdAction">
+                    <base-sensitivity>1.3</base-sensitivity>
+                    <time-direction-flagging>1</time-direction-flagging>
+                    <frequency-direction-flagging>1</frequency-direction-flagging>
+                  </action>
+
+                </children>
+              </action> <!-- for ampl -->
+
+	      <!-- This can't be applied to multi-pol chunks, so it has to go inside here. -->
+              <action type="StatisticalFlagAction">
+		<enlarge-frequency-size>0</enlarge-frequency-size>
+		<enlarge-time-size>0</enlarge-time-size>
+		<max-contaminated-frequencies-ratio>0.5</max-contaminated-frequencies-ratio>
+		<max-contaminated-times-ratio>0.5</max-contaminated-times-ratio>
+		<minimum-good-frequency-ratio>0.15</minimum-good-frequency-ratio>
+		<minimum-good-time-ratio>0.1</minimum-good-time-ratio>
+              </action>
+
+	      <!-- final extra flag of sketchy timeslots and channels -->
+              <action type="CombineFlagResults">
+		<children>
+		  <action type="TimeSelectionAction">
+		    <threshold>3.5</threshold>
+		  </action>
+		  <action type="FrequencySelectionAction">
+		    <threshold>3</threshold>
+		  </action>
+		</children>
+	      </action>
+
+	    </children>
+          </action> <!-- foreach polarization -->
+
+          <action type="BaselineSelectionAction">
+	    <preparation-step>1</preparation-step>
+	    <flag-bad-baselines>0</flag-bad-baselines>
+	    <threshold>12</threshold>
+	    <smoothing-sigma>0.6</smoothing-sigma>
+	    <abs-threshold>0.6</abs-threshold>
+	    <make-plot>0</make-plot> <!-- note: this has no effect -->
+          </action>
+
+	  <!-- XXX: can't seem to get per-pol flags -->
+
+	  <!-- or flags with original -->
+          <action type="SetFlaggingAction">
+	    <new-flagging>6</new-flagging>
+          </action>
+	  
+          <action type="WriteFlagsAction" />
+        </children>
+      </action>  <!-- foreach baseline -->
+
+      <!-- attempt to ID bad bl's automatically; not active for now -->
+      <action type="BaselineSelectionAction">
+        <preparation-step>0</preparation-step>
+        <flag-bad-baselines>0</flag-bad-baselines>
+        <threshold>12</threshold>
+        <smoothing-sigma>0.6</smoothing-sigma>
+        <abs-threshold>0.6</abs-threshold>
+        <make-plot>0</make-plot> <!-- note: this has no effect -->
+      </action>
+
+    </children>
+  </action> <!-- toplevel -->
+</rfi-strategy>

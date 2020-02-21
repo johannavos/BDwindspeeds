@@ -1,0 +1,2 @@
+mode='shadow' tolerance=-2.0 reason='shadowing'
+antenna='ea04' poln='R' spw='0' reason='oscillating bandpass'

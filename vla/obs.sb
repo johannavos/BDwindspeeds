@@ -1,0 +1,82 @@
+# 18A-427: 3×11 hr on 2M 1047+21 to try to measure a precise rotation period
+# Bandpass: 1331+305=3C286
+# Gain/phase cal: J1051+2119
+# Target: J1047+21
+# Correlator setup: C/5s/3b full
+# 11hr per session = 660m per session = 7920 integrations per session
+
+# D configuration, C band: recommended calibrator cycle time 50-60 minutes (!)
+# J1051+2119 @ C band expected 0.9 Jy => super duper bright; brief visits
+
+# Bootup is 10m = 120 integrations
+# Final BP is 5m = 60 integrations
+# Remainder is 7740 integrations
+# Dividable into 12 chunks of 645 integrations = 53.75 min
+# Cal/target slew time no bigger than 13 s
+# => Spend 80 s = 16 integrations on cal
+# => Leaves 629 integrations = 52m25s on-source.
+
+# Visibility (max target elevation ~77 deg):
+#   04:39 target rises 10 deg
+#   05:04 target rises 15 deg
+#   06:55 3C286 rises 10 deg
+#   07:23 3C286 rises 15 deg
+#   10:47 target culminates
+#   12:47 3C286 rises 80 deg
+#   13:14 3C286 rises 85 deg
+#   13:49 3C286 sets 85 deg
+#   14:15 3C286 sets 80 deg
+#   16:32 target sets 15 deg
+#   16:57 target sets 10 deg
+#   19:39 3C286 sets 15 deg
+
+VERSION; 2;
+
+SRC-CAT; VLA, Personal Catalog;
+HDWR-CAT; NRAO Defaults, Personal Catalog;
+
+# SCHED-BLOCK fields are:
+# - name
+# - scheduling type: "dynamic"|"fixed"
+# - number of executions
+# - earliest UT start date: YYYY-MM-DD
+# - LST start range: HH:MM:SS-HH:MM:SS[, HH:MM:SS-HH:MM:SS]; or UTC start if fixed scheduling
+# - max shadowing (m)
+# - configuration for calculating shadowing
+# - assumed antenna start az
+# - assumed antenna start el
+# - avoid sunrise? (maybe?)
+# - avoid sunset? (maybe?)
+# - atmospheric constraints: "w=%f,p=%f" for wind and phase limits, or a band name, or Any
+# - comments to operator
+
+SCHED-BLOCK; v2; Dynamic; 3; 2018-06-18; 05:00:00-05:35:00; 24.0; D; 225.0; 35.0; N; N; Any;The overall scheduling of this project is flexible, but the three executions of this SB must be run on consecutive days.;
+
+# dt = 0, dn = 0
+
+LOOP-START; 10m - setup; 1; N;;
+  STD; 8bdummy; J1051+2119    ; C/5s/8b 7.5+5.5; DUR; 180s; CCW;N;N;N;N; SetAtnGain;;
+  STD; atngain; J1051+2119    ; C/5s/3b full   ; DUR;  60s;    ;N;N;N;N; SetAtnGain;;
+  STD; requant; J1051+2119    ; C/5s/3b full   ; DUR;  30s;    ;N;N;N;N; SetAtnGain;;
+  STD; gpcal  ; J1051+2119    ; C/5s/3b full   ; DUR; 330s;    ;N;N;N;N; CalGain;;
+LOOP-END;
+
+# dt = 10, dn = 120
+
+LOOP-START; 645m - obs; 12; N;;
+  STD; target ; J1047+21      ; C/5s/3b full   ; DUR; 600s;    ;N;N;N;N; ObsTgt;;
+  STD; target ; J1047+21      ; C/5s/3b full   ; DUR; 600s;    ;N;N;N;N; ObsTgt;;
+  STD; target ; J1047+21      ; C/5s/3b full   ; DUR; 600s;    ;N;N;N;N; ObsTgt;;
+  STD; target ; J1047+21      ; C/5s/3b full   ; DUR; 600s;    ;N;N;N;N; ObsTgt;;
+  STD; target ; J1047+21      ; C/5s/3b full   ; DUR; 600s;    ;N;N;N;N; ObsTgt;;
+  STD; target ; J1047+21      ; C/5s/3b full   ; DUR; 145s;    ;N;N;N;N; ObsTgt;;
+  STD; gpcal  ; J1051+2119    ; C/5s/3b full   ; DUR;  80s;    ;N;N;N;N; CalGain;;
+LOOP-END;
+
+# dt = 655, dn = 7860
+
+LOOP-START; 5m - bpfd; 1; N;;
+  STD; bpcal  ; 1331+305=3C286; C/5s/3b full   ; DUR; 300s;  CW;N;N;N;N; CalBP,CalFlux,CalGain,CalDelay;;
+LOOP-END;
+
+# dt = 660, dn = 7920 -- FIN.
