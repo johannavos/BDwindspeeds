@@ -1,0 +1,35 @@
+rjup=7.1492E7 ;meters (equatorial radius from Mamajek, E. E; Prsa, A; Torres, G; et al. (2015). "IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties".)
+robj = 0.94 ; Radius in Jupiter Radii of 2MASS J1047+21 from Filippazzo et al. 2015
+
+;Periods and Uncertainties (in seconds)
+pper=1.741*60.*60. ;The IR photometric period
+ppere=0.007*60.*60. ; The uncertainty on the IR photometric period
+hirper=1.765*60.*60. ;upper value of the radio period range
+lowrper=1.751*60.*60. ;lower value of the radio period range
+
+NSIMS=100000L ;number of monte carlo samples
+values=dblarr(NSIMS) ;array of monte carlo windspeeds
+
+FOR i=0L, NSIMS-1 DO BEGIN
+
+randrper = (randomu(seed)*(hirper-lowrper)) + lowrper ;unifomly distributed radio period
+randpper = (randomn(seed)*ppere + pper) ;normally distributed IR period
+
+values[i] = robj*2*!PI*rjup * (1./randpper - 1./randrper) ;calculate the windspeed with the uncertainy modulated periods
+
+ENDFOR
+
+srt=sort(values)
+srtval=values[srt]
+p2=srtval[round(NSIMS*0.025)-1]  ;lower 95% confidence limit
+p97=srtval[round(NSIMS*0.975)-1] ;upper 95% confidence limit
+p16=srtval[round(NSIMS*0.159)-1]  ;lower 68.2% confidence limit
+p84=srtval[round(NSIMS*0.841)-1] ;upper 68.2% confidence limit
+a95 = srtval[round(NSIMS*0.05)-1] ;95% confidence above this
+
+;calculate non-zero confidence
+print, 'MC fraction > 0:', n_elements(where(values gt 0))/double(NSIMS)
+
+print, median(values), stddev(values, /NaN)
+
+end
