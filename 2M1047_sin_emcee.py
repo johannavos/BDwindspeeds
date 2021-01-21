@@ -6,22 +6,20 @@ import emcee
 import corner
 import scipy.optimize as op
 import IPython
-
-#import math 
-#import matplotlib.pyplot as plt
-#import matplotlib.patches as patches 
 from astropy.io import fits
-#%matplotlib inline
+
 # read in data
 data = Table.read('2M1047_calibch2_ap3_epoch2.fits',hdu=2)
 
-t = data['TIME'][0]
+### JV edits for new .fits file:
+mjd = data['MJD'][0]
+mjd = mjd - mjd[0]
+t = mjd*24.
 flux = data['FLUX'][0]
-binsize = data['BIN'][0]
-ap = data['AP']
+ap=3
+binsize=1
+###
 
-t = t[:,0]
-flux = flux[:,0]
 fluxerr = np.zeros_like(flux) + (np.std(flux - np.roll(flux, 1)))/np.sqrt(2)
 
 
@@ -32,7 +30,7 @@ guess_phase = 0
 guess_period = 2.0
 
 # between the actual data and our "guessed" parameters
-optimize_func = lambda x: x[0]*np.sin(((t)/x[2])*2.*3.14159 + x[1]) + x[3] - flux
+optimize_func = lambda x: x[0]*np.sin(((t)/x[2])*2.*np.pi + x[1]) + x[3] - flux
 est_std, est_phase, est_period, est_mean = op.leastsq(optimize_func, [guess_std, guess_phase, guess_period, guess_mean])[0]
 
 print ('least sq. fits', est_std, est_phase, est_period, est_mean)
@@ -45,7 +43,7 @@ print ('least sq. fits', est_std, est_phase, est_period, est_mean)
 # define likelihood
 def lnlike(theta, t, flux, fluxerr):
     amp, period, phase, offset = theta
-    model = amp * np.sin((t/period)*2.*3.14159 + phase) + offset
+    model = amp * np.sin((t/period)*2.*np.pi + phase) + offset
     inv_sigma2 = 1.0/(fluxerr**2) # + model**2*np.exp(2*lnf))
     return -0.5*(np.sum((flux-model)**2*inv_sigma2 - np.log(inv_sigma2)))
 
@@ -58,7 +56,7 @@ amp_ml, period_ml, phase_ml, offset_ml = result["x"]
 # define priors
 def lnprior(theta):
     amp, period, phase, offset = theta
-    if 0 < amp < 1.0 and 0.0 < period < 30.0 and 0 < phase < 2.*3.14159 and 0 < offset < 2.0:
+    if 0 < amp < 1.0 and 0.0 < period < 30.0 and 0 < phase < 2.*np.pi and 0 < offset < 2.0:
         return 0.0
     return -np.inf
 
@@ -72,7 +70,7 @@ def lnprob(theta, t, flux, fluxerr):
 #initialize MCMC
 ndim, nwalkers = 4, 1000
 #pos = [ [abs(est_std), est_period, est_phase, est_mean] + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
-pos = [ [0.01, 1.7, 3.14159, 1.0] + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
+pos = [ [0.01, 1.7, np.pi, 1.0] + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
 
 #IPython.embed()
 
@@ -105,6 +103,3 @@ mean=offset
 fits.writeto('results/2M1047_sin_sampler_ap%d.fits' % (ap), sampler.chain,overwrite=True)
 
 fits.writeto('results/2M1047_sin_flat_chain_ap%d.fits' % (ap), samples,overwrite=True)
-
-
-
